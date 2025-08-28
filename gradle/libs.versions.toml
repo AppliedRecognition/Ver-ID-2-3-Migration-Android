@@ -1,0 +1,34 @@
+[versions]
+agp = "8.12.1"
+kotlin = "2.2.10"
+coreKtx = "1.17.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+material = "1.12.0"
+verid2 = "2.17.5"
+veridBom = "3001.0.2"
+vanniktech = "0.34.0"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+verid2 = { group = "com.appliedrec.verid", name = "core2", version.ref = "verid2" }
+verid3-common = { group = "com.appliedrec", name = "verid-common" }
+face-recognition-arcface = { group = "com.appliedrec", name = "face-recognition-arcface-core" }
+face-recognition-arcface-cloud = { group = "com.appliedrec", name = "face-recognition-arcface-cloud" }
+face-recognition-dlib = { group = "com.appliedrec", name = "face-recognition-dlib" }
+verid-bom = { group = "com.appliedrec", name = "verid-bom", version.ref = "veridBom" }
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech" }
+
