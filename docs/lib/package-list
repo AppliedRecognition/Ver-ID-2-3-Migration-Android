@@ -1,0 +1,11 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.appliedrec.veridv2v3migration////PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/index.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration///PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/index.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/FaceTemplateMigration/#com.appliedrec.verid.core2.VerID/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/-face-template-migration.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/convertFaceTemplates/#kotlin.collections.List[com.appliedrec.verid.core2.IRecognizable]#TypeParam(bounds=[com.appliedrec.verid3.common.FaceTemplateVersion[kotlin.FloatArray]])/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/convert-face-templates.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/convertFaceTemplates/#kotlin.collections.List[com.appliedrec.verid.core2.IRecognizable]/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/convert-face-templates.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/getConvertedFaceTemplates/#/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/get-converted-face-templates.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/getConvertedFaceTemplates/#TypeParam(bounds=[com.appliedrec.verid3.common.FaceTemplateVersion[kotlin.FloatArray]])/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/get-converted-face-templates.html
+$dokka.location:com.appliedrec.veridv2v3migration/FaceTemplateMigration/verID/#/PointingToDeclaration/lib/com.appliedrec.veridv2v3migration/-face-template-migration/ver-i-d.html
+com.appliedrec.veridv2v3migration
