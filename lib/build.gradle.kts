@@ -1,9 +1,11 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.vanniktech.publish)
+    alias(libs.plugins.dokka)
     signing
 }
 
@@ -53,6 +55,7 @@ dependencies {
     implementation(platform(libs.verid.bom))
     implementation(libs.face.recognition.arcface)
     implementation(libs.face.recognition.dlib)
+    implementation("com.appliedrec.verid:ui2:2.17.5")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.face.recognition.arcface.cloud)
@@ -89,4 +92,15 @@ mavenPublishing {
 signing {
     useGpgCmd()
     sign(publishing.publications)
+}
+
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(rootProject.file("docs"))
+    }
+}
+
+tasks.withType<DokkaTaskPartial>().configureEach {
+    moduleName.set("Ver-ID 2 to 3 migration")
+    moduleVersion.set(project.version.toString())
 }
