@@ -1,6 +1,6 @@
 package com.appliedrec.veridv2v3migration
 
-class Amf3V2PrototypeReader(private val buf: ByteArray) {
+internal class Amf3V2PrototypeReader(private val buf: ByteArray) {
 
     private var p = 0
 

@@ -1,6 +1,6 @@
 package com.appliedrec.veridv2v3migration
 
-data class FP16Vec(
+internal data class FP16Vec(
     var coeff: Float = 0f,
     var values: ShortArray = shortArrayOf()
 ) {
@@ -8,19 +8,19 @@ data class FP16Vec(
     val isEmpty: Boolean get() = values.isEmpty()
 }
 
-data class FPVCVector(
+internal data class FPVCVector(
     var coeff: Float = 0f,
     var codes: ByteArray = byteArrayOf()
 ) {
     val isEmpty: Boolean get() = codes.isEmpty()
 }
 
-class FPVCDecoder {
+internal class FPVCDecoder {
 
-    @Throws(FaceTemplateMigrationError::class)
+    @Throws(FaceTemplateMigrationException::class)
     fun deserializeFPVC(data: ByteArray): FP16Vec {
         var remaining = data.size
-        if (remaining < 4) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (remaining < 4) throw FaceTemplateMigrationException.VectorDeserializationFailed
 
         val u8 = data
 
@@ -38,13 +38,13 @@ class FPVCDecoder {
             // coeff is BF16 at bytes 2..3 (LE), expanded by << 16
             val bf16 = readLEUInt16(u8, 2)
             v.coeff = bfloat16ToFloat(bf16)
-            if (!(v.coeff >= 0f)) throw FaceTemplateMigrationError.VectorDeserializationFailed
+            if (!(v.coeff >= 0f)) throw FaceTemplateMigrationException.VectorDeserializationFailed
             return v
         }
 
         val type = (u8[2].toInt() and 0xFF)
         val nvecs = (u8[3].toInt() and 0xFF)
-        if (nvecs != 1) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (nvecs != 1) throw FaceTemplateMigrationException.VectorDeserializationFailed
 
         var offset = 4
         remaining -= 4
@@ -52,9 +52,9 @@ class FPVCDecoder {
 
         var nels = nelsHead
         if (nels == 0) {
-            if (remaining < 4) throw FaceTemplateMigrationError.VectorDeserializationFailed
+            if (remaining < 4) throw FaceTemplateMigrationException.VectorDeserializationFailed
             val nels32 = readLEUInt32(u8, offset)
-            if (nels32 == 0) throw FaceTemplateMigrationError.VectorDeserializationFailed
+            if (nels32 == 0) throw FaceTemplateMigrationException.VectorDeserializationFailed
             nels = nels32
             offset += 4
             remaining -= 4
@@ -64,7 +64,7 @@ class FPVCDecoder {
         when (type) {
             0x10 -> {
                 nBytes = fpvcVectorSerializeSize(nels)
-                if (remaining < nBytes) throw FaceTemplateMigrationError.VectorDeserializationFailed
+                if (remaining < nBytes) throw FaceTemplateMigrationException.VectorDeserializationFailed
                 val slice = u8.copyOfRange(offset, offset + nBytes)
                 val fpvc = fpvcVectorDeserialize(slice, nels)
                 val fp16 = toFP16Vec(fpvc)
@@ -72,19 +72,19 @@ class FPVCDecoder {
             }
             0x11 -> {
                 nBytes = fp16vec12Bytes(nels)
-                if (remaining < nBytes) throw FaceTemplateMigrationError.VectorDeserializationFailed
+                if (remaining < nBytes) throw FaceTemplateMigrationException.VectorDeserializationFailed
                 val slice = u8.copyOfRange(offset, offset + nBytes)
                 val fp16 = deserializeFp16vec12(slice, nels)
                 result = fp16
             }
             0x12 -> {
                 nBytes = fp16vec16Bytes(nels)
-                if (remaining < nBytes) throw FaceTemplateMigrationError.VectorDeserializationFailed
+                if (remaining < nBytes) throw FaceTemplateMigrationException.VectorDeserializationFailed
                 val slice = u8.copyOfRange(offset, offset + nBytes)
                 val fp16 = deserializeFp16vec16(slice, nels)
                 result = fp16
             }
-            else -> throw FaceTemplateMigrationError.VectorDeserializationFailed
+            else -> throw FaceTemplateMigrationException.VectorDeserializationFailed
         }
 
         check((nBytes and 3) == 0)
@@ -102,12 +102,12 @@ class FPVCDecoder {
     }
 
     // C++: fpvc_vector_deserialize(const void* src, size_t vector_size)
-    @Throws(FaceTemplateMigrationError::class)
+    @Throws(FaceTemplateMigrationException::class)
     private fun fpvcVectorDeserialize(blob: ByteArray, nels: Int): FPVCVector {
         val r = FPVCVector()
-        if (blob.size < 4 + nels) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (blob.size < 4 + nels) throw FaceTemplateMigrationException.VectorDeserializationFailed
         r.coeff = readFloatLE(blob, 0)
-        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationException.VectorDeserializationFailed
         // only the first `nels` code bytes are actual data; padding may follow
         r.codes = blob.copyOfRange(4, 4 + nels)
         return r
@@ -138,12 +138,12 @@ class FPVCDecoder {
     }
 
     // C++: deserialize_fp16vec_12(const void* src, size_t vector_size)
-    @Throws(FaceTemplateMigrationError::class)
+    @Throws(FaceTemplateMigrationException::class)
     private fun deserializeFp16vec12(blob: ByteArray, nels: Int): FP16Vec {
         val r = FP16Vec()
-        if (blob.size < 4) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (blob.size < 4) throw FaceTemplateMigrationException.VectorDeserializationFailed
         r.coeff = readFloatLE(blob, 0)
-        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationException.VectorDeserializationFailed
         r.values = ShortArray(nels)
 
         var p = 4
@@ -177,12 +177,12 @@ class FPVCDecoder {
     }
 
     // C++: deserialize_fp16vec_16(const void* src, size_t vector_size)
-    @Throws(FaceTemplateMigrationError::class)
+    @Throws(FaceTemplateMigrationException::class)
     private fun deserializeFp16vec16(blob: ByteArray, nels: Int): FP16Vec {
         val r = FP16Vec()
-        if (blob.size < 4 + 2 * nels) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (blob.size < 4 + 2 * nels) throw FaceTemplateMigrationException.VectorDeserializationFailed
         r.coeff = readFloatLE(blob, 0)
-        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationError.VectorDeserializationFailed
+        if (!(r.coeff >= 0f)) throw FaceTemplateMigrationException.VectorDeserializationFailed
         val out = ShortArray(nels)
         var off = 4
         for (i in 0 until nels) {

@@ -19,7 +19,7 @@ import kotlinx.serialization.json.buildJsonObject
 
 
 @Serializable(with = V2PrototypeSerializer::class)
-data class V2Prototype(val proto: ByteArray) {
+internal data class V2Prototype(val proto: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is V2Prototype) return false
@@ -34,7 +34,7 @@ data class V2Prototype(val proto: ByteArray) {
     }
 }
 
-class V2PrototypeSerializer : KSerializer<V2Prototype> {
+internal class V2PrototypeSerializer : KSerializer<V2Prototype> {
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("V2Prototype") {
             element("proto", PrimitiveSerialDescriptor("Base64", PrimitiveKind.STRING))
