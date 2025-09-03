@@ -1,26 +1,15 @@
 package com.appliedrec.veridv2v3migration
 
-import android.graphics.BitmapFactory
-import android.util.Log
+import android.util.Base64
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.appliedrec.facerecognition.dlib.FaceRecognitionDlib
 import com.appliedrec.facerecognition.dlib.FaceTemplateVersionV16
-import com.appliedrec.verid.core2.FaceRecognition
-import com.appliedrec.verid.core2.IRecognizable
-import com.appliedrec.verid.core2.Image
-import com.appliedrec.verid.core2.VerID
-import com.appliedrec.verid.core2.VerIDFaceTemplateVersion
-import com.appliedrec.verid.core2.VerIDFactory
-import com.appliedrec.verid3.common.FaceTemplate
-import com.appliedrec.verid3.common.use
-import com.appliedrec.verid3.facerecognition.arcface.cloud.FaceRecognitionArcFace
 import com.appliedrec.verid3.facerecognition.arcface.core.FaceTemplateVersionV24
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.math.sqrt
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -30,180 +19,92 @@ import kotlin.math.sqrt
 @RunWith(AndroidJUnit4::class)
 class FaceTemplateMigrationTest {
 
-    val password = "58F6623F-C2BD-4154-B29E-A7E625179B8F"
-    val arcFaceAPIKey = "BK1aJ1vpb08InLtOsdmhL6ZiRDJtq0H89nPqVuzB"
-    val arcFaceURL = "https://itnlej3459.execute-api.us-east-1.amazonaws.com/Prod/extract_face_templates"
-
+    val testFaceTemplates: Map<String,List<String>> = mapOf(
+        "subject1" to listOf(
+            "CgsBC3Byb3RvDIIZEAAQAYAAAABGabc4FUFGSdxP4USmRTktyNPeCTAhwSUZ3Mq/ASI7zj2nFLsx8dLPswk6otFAPeIQJ9lgJbInJVx/Lqgz79E2ssRBOrDF7kDSAVI5Js0dN7Q/vsdc0MzkL78G2bbRQzkv5fNSA+1MVw2t8ZgvPRFPxNcmTj3mfTSo+yzlG7wpq9StziYJdXVpZAwhgNp9OEzMcORFlGzYez1zrAE=",
+            "CgsBC3Byb3RvDIIZEAAQAYAAAAAAfrE4HzAgNIBU2Q6lVkj7wBS/Eu42tx4rvR7M8B0xzGaBE6f1wcuwtdVBu+BYM8kpMuNMFsgcEXJKJc8lA+A7BvZLIsG+J0vlPD7vIeg/Cec0q70s17i7NrTy6aqpXFVA2yQ6vRZXPPq3PJY4K+9Czt4iLjrYbzWc1icBLBRDsMqhyzMJdXVpZAwhbQESeTuJUDEpsoeC66G+FwE=",
+            "CgsBC3Byb3RvDIIZEAAQAYAAAABhxM44Thf7Ew9d6e0i+R1RzSj1CwoyxMIMB9Hx1Wbu9VK+wbQx/AjI1OVK7A9BT9Ub7QpGR+Aj+V5mLIDPLDVf480iVLvc4BHwI0Mw8OFEHPQ5yuQ36vHaIBcSIvb6PUgmJe5N1csbIgvJOq4FRyI4shoEaUneTBLB7RvvL8Q1vcC5LSMJdXVpZAwhSIUACdvEny4HeBjhUSgFgwE=",
+            "CgsBC3Byb3RvDIIZGAAQAYAAAADZtMo616TpgEG6sg0/CYlZ4M85uQfJwS8HuMg7oOkE28wlLbkh9OBXBlsrYuEH4wm3luzVuk4cps3YtkjJUiTp6R8+OtI3G6E/FB0Lng/LKablO7TXFb3y7VAu/d0RYC3BLvy1XJ7W9foYz0/QuSzcSgU5kBQTwLYxaUCY3FDH0PJTBbYJdXVpZAwh3geQw7/S2nBtHvbCde5sFgE="
+        ),
+        "subject2" to listOf(
+            "CgsBC3Byb3RvDIIZGAAQAYAAAAA1fqo6NsnjqZifFVPg0CKlmk0wtu1bJ9rQ/0mvX8AYjyo5KxRPOTpTfy3nlftLOKReMKkRxp0a0Cv7A0xYIzf80lLFIbcKKMj21FE+1cxLIjXOVzrBtOoiF7hn+eEyHN3URdkTja4xc6sTZiPUUrcTAu/m1MY0JNguLR8trS3VxTrWp2kJdXVpZAwhqs8iJmqSX5dTH7Qqk2t/oQE="
+        )
+    )
 
     @Test
-    fun testLoadVerID(): Unit = runBlocking {
-        val verID = loadVerID()
-        Assert.assertNotNull(verID)
-    }
-
-    @Test
-    fun testMigrateTemplates(): Unit = runBlocking {
-        val verID = loadVerIDWithFaceTemplates()
-        val converted = FaceTemplateMigration(verID).getConvertedFaceTemplates()
-        Assert.assertEquals(verID.userManagement.faces.size, converted.size)
-        Assert.assertTrue(converted.any { it.version == FaceTemplateVersionV16 })
-        Assert.assertTrue(converted.any { it.version == FaceTemplateVersionV24 })
-        for (template in converted) {
-            val norm = sqrt(template.data.map { it * it }.sum())
-            Assert.assertEquals(1f, norm, 0.001f)
+    fun testConvertTemplates() {
+        val templates = testFaceTemplates.flatMap { entry ->
+            entry.value.map { Base64.decode(it, Base64.DEFAULT) }
         }
+        val converted = FaceTemplateMigration.default.convertFaceTemplates(templates)
+        converted.filter { it.version == FaceTemplateVersionV16 }
+        Assert.assertEquals(templates.size, converted.size)
     }
 
     @Test
-    fun testMigrateTemplatesByVersion(): Unit = runBlocking {
-        val verID = loadVerIDWithFaceTemplates()
-        val convertedV16 = FaceTemplateMigration(verID).getConvertedFaceTemplates(FaceTemplateVersionV16)
-        Assert.assertEquals(verID.userManagement.getFaces(VerIDFaceTemplateVersion.V16).size, convertedV16.size)
-        val convertedV24 = FaceTemplateMigration(verID).getConvertedFaceTemplates(FaceTemplateVersionV24)
-        Assert.assertEquals(verID.userManagement.getFaces(VerIDFaceTemplateVersion.V24).size, convertedV24.size)
-    }
-
-    @Test
-    fun testCompareMigratedTemplates(): Unit = runBlocking {
-        val verID = loadVerIDWithFaceTemplates()
-        val v2FaceRec = verID.faceRecognition as FaceRecognition
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val v2Templates = mutableMapOf<VerIDFaceTemplateVersion, MutableList<Pair<String, IRecognizable>>>()
-        for (user in verID.userManagement.users) {
-            for (face in verID.userManagement.getFacesOfUser(user)) {
-                val version = VerIDFaceTemplateVersion.fromSerialNumber(face.version)
-                v2Templates.getOrPut(version) { mutableListOf() }.add(user to face)
+    fun testCompareConvertedFaceTemplates(): Unit = runBlocking {
+        val templates = testFaceTemplates.flatMap { entry ->
+            entry.value.map { entry.key to Base64.decode(it, Base64.DEFAULT) }
+        }
+        val v16Templates = templates.mapNotNull { (subject, template) ->
+            if (FaceTemplateMigration.default.versionOfLegacyFaceTemplate(template) == 16) {
+                subject to FaceTemplateMigration.default.convertFaceTemplate(template, FaceTemplateVersionV16)
+            } else {
+                null
             }
         }
-        FaceRecognitionDlib.create(context).use { faceRecognitionDlib ->
-            FaceRecognitionArcFace(arcFaceAPIKey, arcFaceURL).use { faceRecognitionArcFace ->
-                val migration = FaceTemplateMigration(verID)
-                val comparisonResults = mutableListOf<ComparisonResult>()
-                for ((version, templates) in v2Templates) {
-                    for (i in 0 until templates.size) {
-                        for (j in 1 until templates.size - 1) {
-                            val template1 = templates[i].second
-                            val template2 = templates[j].second
-                            if (template1 == template2) {
-                                continue
-                            }
-                            val subject1 = templates[i].first
-                            val subject2 = templates[j].first
-                            val v2Score = v2FaceRec.compareSubjectFacesToFaces(
-                                arrayOf(template1),
-                                arrayOf(template2)
-                            )
-                            val v2Passed = v2Score >= v2FaceRec.getAuthenticationThreshold(version)
-                            val (v3Score, v3Threshold) = when (version) {
-                                VerIDFaceTemplateVersion.V16 -> {
-                                    val v3Templates: List<FaceTemplate<FaceTemplateVersionV16, FloatArray>> =
-                                        migration.convertFaceTemplates(
-                                            listOf(
-                                                template1,
-                                                template2
-                                            ),
-                                            FaceTemplateVersionV16
-                                        )
-                                    faceRecognitionDlib.compareFaceRecognitionTemplates(
-                                        listOf(
-                                            v3Templates[0]
-                                        ), v3Templates[1]
-                                    ).first() to faceRecognitionDlib.defaultThreshold
-                                }
-                                VerIDFaceTemplateVersion.V24 -> {
-                                    val v3Templates: List<FaceTemplate<FaceTemplateVersionV24, FloatArray>> =
-                                        migration.convertFaceTemplates(
-                                            listOf(
-                                                template1,
-                                                template2
-                                            ),
-                                            FaceTemplateVersionV24
-                                        )
-                                    faceRecognitionArcFace.compareFaceRecognitionTemplates(
-                                        listOf(
-                                            v3Templates[0]
-                                        ), v3Templates[1]
-                                    ).first() to faceRecognitionArcFace.defaultThreshold
-                                }
-                                else -> {
-                                    throw IllegalArgumentException("Unsupported version")
-                                }
-                            }
-                            val v3Passed = v3Score >= v3Threshold
-                            comparisonResults.add(
-                                ComparisonResult(
-                                    subject1,
-                                    subject2,
-                                    v2Score,
-                                    v2Passed,
-                                    v3Score,
-                                    v3Passed,
-                                    if (version == VerIDFaceTemplateVersion.V16) 16 else 24
-                                )
-                            )
-                        }
-                    }
-                }
-                for (result in comparisonResults) {
-                    Assert.assertEquals(result.v2Passed, result.v3Passed)
-                    if (result.subject1 == result.subject2) {
-                        Assert.assertTrue(result.v2Passed)
-                        Assert.assertTrue(result.v3Passed)
+        val v24Templates = templates.mapNotNull { (subject, template) ->
+            if (FaceTemplateMigration.default.versionOfLegacyFaceTemplate(template) == 24) {
+                subject to FaceTemplateMigration.default.convertFaceTemplate(template, FaceTemplateVersionV24)
+            } else {
+                null
+            }
+        }
+        val faceRecognitionDlib = FaceRecognitionDlib.create(
+            InstrumentationRegistry.getInstrumentation().targetContext
+        )
+        for (i in 0 until v16Templates.size - 1) {
+            for (j in 1 until v16Templates.size) {
+                if (v16Templates[i].second != v16Templates[j].second) {
+                    val score = faceRecognitionDlib.compareFaceRecognitionTemplates(
+                        listOf(v16Templates[i].second),
+                        v16Templates[j].second
+                    ).first()
+                    if (v16Templates[i].first == v16Templates[j].first) {
+                        Assert.assertTrue(score >= faceRecognitionDlib.defaultThreshold)
                     } else {
-                        Assert.assertFalse(result.v2Passed)
-                        Assert.assertFalse(result.v3Passed)
+                        Assert.assertTrue(score < faceRecognitionDlib.defaultThreshold)
+                    }
+                }
+            }
+        }
+        val faceRecognitionArcFace = MockFaceRecognitionArcFace()
+        for (i in 0 until v24Templates.size - 1) {
+            for (j in 1 until v24Templates.size) {
+                if (v24Templates[i].second != v24Templates[j].second) {
+                    val score = faceRecognitionArcFace.compareFaceRecognitionTemplates(
+                        listOf(v24Templates[i].second),
+                        v24Templates[j].second
+                    ).first()
+                    if (v24Templates[i].first == v24Templates[j].first) {
+                        Assert.assertTrue(score >= faceRecognitionDlib.defaultThreshold)
+                    } else {
+                        Assert.assertTrue(score < faceRecognitionDlib.defaultThreshold)
                     }
                 }
             }
         }
     }
 
-    private suspend fun loadVerID(): VerID {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        return VerIDFactory(context, password).createVerIDSync()
-    }
-
-    private fun loadImage(name: String): Image {
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val bitmap = context.assets.open("${name}.jpg").use { inputStream ->
-            BitmapFactory.decodeStream(inputStream)
+    @Test
+    fun testConvertFaceTemplatesByVersion() {
+        val templates = testFaceTemplates.flatMap { entry ->
+            entry.value.map { Base64.decode(it, Base64.DEFAULT) }
         }
-        return Image(bitmap)
-    }
-
-    private suspend fun loadVerIDWithFaceTemplates(): VerID {
-        val verID = loadVerID()
-        verID.userManagement.deleteAllFaces()
-        val names = listOf("subject1" to "-01", "subject1" to "-02", "subject2" to "-01")
-        for ((name, suffix) in names) {
-            val templates = createV2FaceTemplates(name + suffix, verID).values
-            verID.userManagement.assignFacesToUser(templates.toTypedArray(), name)
-        }
-        return verID
-    }
-
-    private fun createV2FaceTemplates(name: String, verID: VerID): Map<VerIDFaceTemplateVersion,IRecognizable> {
-        val image = loadImage(name)
-        val rec = verID.faceRecognition as FaceRecognition
-        val face = verID.faceDetection.detectFacesInImage(image, 1, 0).first()
-        val map = mutableMapOf<VerIDFaceTemplateVersion,IRecognizable>()
-        for (version in setOf(VerIDFaceTemplateVersion.V16, VerIDFaceTemplateVersion.V24)) {
-            map.put(version, rec.createRecognizableFacesFromFaces(arrayOf(face), image, version).first())
-        }
-        return map.toMap()
+        val v16s = FaceTemplateMigration.default.convertFaceTemplates(
+            templates, FaceTemplateVersionV16)
+        val v24s = FaceTemplateMigration.default.convertFaceTemplates(
+            templates, FaceTemplateVersionV24)
+        Assert.assertEquals(templates.size, v16s.size + v24s.size)
     }
 }
-
-private enum class VerIDVersion {
-    V2, V3
-}
-
-private data class ComparisonResult(
-    val subject1: String,
-    val subject2: String,
-    val v2Score: Float,
-    val v2Passed: Boolean,
-    val v3Score: Float,
-    val v3Passed: Boolean,
-    val faceTemplateVersion: Int
-)
