@@ -10,6 +10,7 @@ material = "1.12.0"
 verid2 = "2.17.5"
 veridBom = "3001.0.2"
 vanniktech = "0.34.0"
+dokka = "2.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -25,10 +26,13 @@ face-recognition-arcface-cloud = { group = "com.appliedrec", name = "face-recogn
 face-recognition-dlib = { group = "com.appliedrec", name = "face-recognition-dlib" }
 verid-bom = { group = "com.appliedrec", name = "verid-bom", version.ref = "veridBom" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
+kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.9.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
