@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlin.serialization)
     signing
 }
 
@@ -55,10 +56,9 @@ dependencies {
     implementation(platform(libs.verid.bom))
     implementation(libs.face.recognition.arcface)
     implementation(libs.face.recognition.dlib)
-    implementation("com.appliedrec.verid:ui2:2.17.5")
+    implementation(libs.kotlinx.serialization)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.face.recognition.arcface.cloud)
 }
 
 mavenPublishing {
