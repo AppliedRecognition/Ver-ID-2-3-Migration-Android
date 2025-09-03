@@ -10,7 +10,7 @@ plugins {
     signing
 }
 
-version = "1.0.0"
+version = "2.0.0"
 
 android {
     namespace = "com.appliedrec.veridv2v3migration"
